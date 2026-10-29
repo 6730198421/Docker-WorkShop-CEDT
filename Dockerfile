@@ -17,6 +17,10 @@ RUN npm ci --omit=dev
 # TODO(step-4c): copy the rest of the app source into /app.
 COPY app/ ./
 
+# FIX 1: Update vulnerable proxy-addr
+# Also updates the lockfile inside the image
+RUN npm update proxy-addr --omit=dev
+
 # =============================================================================
 # Runtime stage — slim final image. Nothing from builder's caches leaks in.
 # =============================================================================
@@ -26,6 +30,18 @@ FROM node:20.11-slim
 
 WORKDIR /app
 
+# FIX 2: Upgrade vulnerable Debian packages
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    rm -rf /var/lib/apt/lists/*
+
+# FIX 3: Remove npm and its bundled tar package
+# Node.js itself is kept
+RUN rm -rf \
+    /usr/local/lib/node_modules/npm \
+    /usr/local/bin/npm \
+    /usr/local/bin/npx
+    
 # TODO(step-4e): copy the fully-installed app from the builder stage.
 COPY --from=builder /app /app
 
