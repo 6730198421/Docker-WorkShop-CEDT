@@ -26,6 +26,13 @@ FROM node:20.11-slim
 
 WORKDIR /app
 
+# FIX: Remove npm and its vulnerable bundled packages
+# npm is unnecessary when running node directly
+RUN rm -rf \
+    /usr/local/lib/node_modules/npm \
+    /usr/local/bin/npm \
+    /usr/local/bin/npx
+
 # TODO(step-4e): copy the fully-installed app from the builder stage.
 COPY --from=builder /app /app
 
